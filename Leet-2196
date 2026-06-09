@@ -1,0 +1,52 @@
+'''LeetCode 2196. Create Binary Tree From Descriptions
+
+You are given a 2D integer array descriptions where descriptions[i] = [parenti, childi, isLefti] indicates that parenti is the parent of childi in a binary tree of unique values. Furthermore,
+
+If isLefti == 1, then childi is the left child of parenti.
+If isLefti == 0, then childi is the right child of parenti.
+Construct the binary tree described by descriptions and return its root.
+
+The test cases will be generated such that the binary tree is valid.
+'''
+# Learning from solution
+
+# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+class Solution:
+    def createBinaryTree(self, descriptions: List[List[int]]) -> Optional[TreeNode]:
+        node_map = {}
+        parents = set()
+        children = set()
+
+        for desc in descriptions:
+            # Extract description
+            parent_val = desc[0]
+            child_val = desc[1]
+            is_left = bool(desc[2])
+
+            # Create parent/child node if non-existent
+            if parent_val not in node_map:
+                node_map[parent_val] = TreeNode(parent_val)
+            if child_val not in node_map:
+                node_map[child_val] = TreeNode(child_val)
+            
+            # Join child to parent from left/right
+            if is_left:
+                node_map[parent_val].left = node_map[child_val]
+            else:
+                node_map[parent_val].right = node_map[child_val]
+            
+            # Remember child in the set of children
+            children.add(child_val)
+        
+        # Find and return root node
+        for node in node_map.values():
+            if node.val not in children:
+                return node
+        
+        # If root node did not exist
+        return None
