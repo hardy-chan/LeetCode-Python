@@ -1,0 +1,28 @@
+# Leet 1358. Number of Substrings Containing All Three Characters
+
+'''Given a string s consisting only of characters a, b and c.
+
+Return the number of substrings containing at least one occurrence of all these characters a, b and c.'''
+
+# Main idea: sliding window
+
+class Solution:
+    def numberOfSubstrings(self, s: str) -> int:
+        # initialize with i = left pointer of window
+        i = ans = 0
+        n = len(s)
+        mp = {} 
+        # move j = right pointer of window
+        for j in range(n):
+            # add s[j] to hash map until all 'a','b','c' is seen
+            mp[s[j]] = mp.get(s[j],0)+1 
+            while len(mp) == 3:
+                # count all superstrings from the right
+                ans += (n-j)
+                # move i to the right, counting each time, until not all 3 characters are in the hash map
+                mp[s[i]] -= 1
+                if mp[s[i]] == 0:
+                    del mp[s[i]] # making len(mp)==2 and j forward
+                i += 1
+        return ans
+            
