@@ -1,0 +1,74 @@
+# Leet 2812. Find the Safest Path in a Grid
+
+'''You are given a 0-indexed 2D matrix grid of size n x n, where (r, c) represents:
+
+    A cell containing a thief if grid[r][c] = 1
+    An empty cell if grid[r][c] = 0
+
+You are initially positioned at cell (0, 0). In one move, you can move to any adjacent cell in the grid, including cells containing thieves.
+
+The safeness factor of a path on the grid is defined as the minimum manhattan distance from any cell in the path to any thief in the grid.
+
+Return the maximum safeness factor of all paths leading to cell (n - 1, n - 1).
+
+An adjacent cell of cell (r, c), is one of the cells (r, c + 1), (r, c - 1), (r + 1, c) and (r - 1, c) if it exists.
+
+The Manhattan distance between two cells (a, b) and (x, y) is equal to |a - x| + |b - y|, where |val| denotes the absolute value of val.'''
+
+# Phase 1: BFS to get safeness = min distance to thief
+# Phase 2: Priority queue BFS / modified Dijkstra to get max safeness
+# Learned: heapq
+
+class Solution:
+    def maximumSafenessFactor(self, grid: List[List[int]]) -> int:
+        n = len(grid)
+        if grid[0][0] == 1 or grid[n-1][n-1] == 1:
+            return 0
+
+        # check in bound
+        def isInBound(i: int, j: int) -> bool:
+            return 0 <= i < n and 0 <= j < n
+
+        # safeness initialized at thiefs 
+        sf = [([-1]*n) for _ in range(n)]
+        # initialize thief coordinates as list of tuples
+        thief_old = []
+        for i in range(n):
+            for j in range(n):
+                if grid[i][j] == 1: # thief at (x,y)
+                    thief_old.append((i,j))
+                    sf[i][j] = 0
+        # BFS ripple for safeness matrix 
+        d = 1
+        while thief_old:
+            thief_new = []
+            for i, j in thief_old:
+                for dir in [(1,0), (-1,0), (0,1), (0,-1)]:
+                    di, dj = i + dir[0], j + dir[1]
+                    if isInBound(di,dj) and sf[di][dj] == -1:
+                        thief_new.append((di,dj))
+                        sf[di][dj] = d
+            d += 1
+            thief_old = thief_new.copy()
+        
+        # Priority queue for modified Dijkstra
+        pq = [(-sf[0][0], 0, 0)] # [-max_safeness, i, j] initialized
+        sf[0][0] = -1 # visited via negative safeness
+
+        # start BFS
+        while pq:
+            neg_sf, i, j = heapq.heappop(pq) # recall safeness is in negative for max heap
+
+            # return safeness if path ends
+            if (i,j) == (n-1, n-1):
+                return -neg_sf
+            
+            for dir in [(1,0), (-1,0), (0,1), (0,-1)]:
+                di, dj = i + dir[0], j + dir[1]
+                if isInBound(di,dj) and sf[di][dj] != -1:
+                    # push with current negative safeness and mark visited
+                    heapq.heappush(pq, (-min(-neg_sf,sf[di][dj]),di,dj))
+                    sf[di][dj] = -1
+            
+        return -1 # should not happen
+
