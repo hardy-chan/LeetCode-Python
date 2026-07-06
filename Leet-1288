@@ -1,0 +1,39 @@
+# Leet 1288. Remove Covered Intervals
+
+'''Given an array intervals where intervals[i] = [li, ri] represent the interval [li, ri), remove all intervals that are covered by another interval in the list.
+
+The interval [a, b) is covered by the interval [c, d) if and only if c <= a and b <= d.
+
+Return the number of remaining intervals.'''
+
+# Idea 1: loop through by brute force and record the removed indices, O(n^2)
+# Idea 2: optimize by first sorting increasing in r and decreasing in l, O(n log n),
+
+class Solution:
+    def removeCoveredIntervals(self, intervals: List[List[int]]) -> int:
+        # 2-tier sorting, asc in r then dsc in l
+        intervals.sort(key = lambda x: (x[0], -x[1])) 
+
+        count = 0
+        end = 0
+
+        for r, l in intervals:
+            if l > end: # new uncovered interval
+                count += 1
+                end = l
+        
+        return count
+
+''' Brute force solution below
+        n = len(intervals)
+        remove = set()
+        for i in range(n):
+            for j in range(i+1, n):
+                a, b = intervals[i]
+                c, d = intervals[j]
+                if a <= c and b >= d:
+                    remove.add(j)
+                if a >= c and b <= d:
+                    remove.add(i)
+        return n - len(remove)
+'''
