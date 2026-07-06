@@ -1,0 +1,35 @@
+# LeetCode 1: Two Sum
+
+'''Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
+
+You may assume that each input would have exactly one solution, and you may not use the same element twice.
+
+You can return the answer in any order.'''
+
+# Learned strategy: hashmap, which maps element to its index
+
+class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        hashmap = {}
+        for i in range(len(nums)):
+            complement = target - nums[i]
+            if (complement in hashmap) and (hashmap[complement] != i):
+                return [i, hashmap[complement]]
+            hashmap[nums[i]] = i
+        return []
+
+''' Searching using list.index()
+        for i in range(len(nums)):
+            nums2 = nums.copy()
+            nums2.remove(nums[i])
+            if (target - nums[i]) in nums2:
+                return [i, nums.index(target - nums[i], i+1)]
+'''
+
+''' Brutal check
+        n = len(nums)
+        for i in range(n):
+            for j in range(n):
+                if i != j and nums[i] + nums[j] == target:
+                    return [i,j]
+'''
