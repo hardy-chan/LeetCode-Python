@@ -42,7 +42,7 @@ class Solution:
                 E2 = 0 # edge count doubled in a component
                 for w in comp:
                     E2 += len(adj[w])
-                V = len(comp) # vertice count of component
+                V = len(comp) # vertex count of component
                 if E2 == V*(V-1):
                     count += 1
         
