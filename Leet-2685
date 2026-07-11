@@ -39,11 +39,11 @@ class Solution:
                 DFS(u, comp)
 
                 # check completeness of this component
-                e2 = 0 # twice edge count in a component
+                E2 = 0 # twice edge count in a component
                 for w in comp:
-                    e2 += len(adj[w])
-                n_comp = len(comp) # vertex count of component
-                if e2 == n_comp*(n_comp - 1):
+                    E2 += len(adj[w])
+                V = len(comp) # vertex count of component
+                if E2 == V*(V - 1):
                     count += 1
         
         return count
