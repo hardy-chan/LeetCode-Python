@@ -1,0 +1,66 @@
+'''Leet 3499. Maximize Active Section with Trade I
+
+You are given a binary string s of length n, where:
+
+    '1' represents an active section.
+    '0' represents an inactive section.
+
+You can perform at most one trade to maximize the number of active sections in s. In a trade, you:
+
+    Convert a contiguous block of '1's that is surrounded by '0's to all '0's.
+    Afterward, convert a contiguous block of '0's that is surrounded by '1's to all '1's.
+
+Return the maximum number of active sections in s after making the optimal trade.
+
+Note: Treat s as if it is augmented with a '1' at both ends, forming t = '1' + s + '1'. The augmented '1's do not contribute to the final count.
+'''
+
+# Greedy: count('1') + max(sum of lengths of consecutive zero blocks)
+# Time O(n) by traversing
+# Space O(k) when storing lengths of consecutive zero blocks
+# Space O(1) when dynamically updating the sum of lengths
+
+class Solution:
+    def maxActiveSectionsAfterTrade(self, s: str) -> int:
+        n = len(s)
+        cnt1 = s.count('1')
+        
+        gain = 0
+        prev = -n
+
+        i = 0
+        while i < n:
+            start = i
+            while i < n and s[i] == s[start]:
+                i += 1
+            if s[start] == '0':
+                curr = i - start
+                gain = max(gain, prev + curr)
+                prev = curr
+        
+        return cnt1 + gain
+
+'''
+        # unoptimized version
+        
+        n = len(s)
+        cnt1 = s.count('1')
+        lenZero = []
+
+        i = 0
+        while i < n:
+            start = i
+            while i < n and s[i] == s[start]:
+                i += 1
+            if s[start] == '0':
+                lenZero.append(i-start)
+        
+        m = len(lenZero)
+        if m<2:
+            return cnt1
+        
+        delta = 0
+        for i in range(m-1):
+            delta = max(delta, lenZero[i]+lenZero[i+1])
+        return cnt1 + delta
+'''
