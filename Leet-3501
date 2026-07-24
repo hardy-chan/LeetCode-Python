@@ -1,0 +1,255 @@
+'''Leet 3501. Maximize Active Section with Trade II
+
+You are given a binary string s of length n, where:
+
+    '1' represents an active section.
+    '0' represents an inactive section.
+
+You can perform at most one trade to maximize the number of active sections in s. In a trade, you:
+
+    Convert a contiguous block of '1's that is surrounded by '0's to all '0's.
+    Afterward, convert a contiguous block of '0's that is surrounded by '1's to all '1's.
+
+Additionally, you are given a 2D array queries, where queries[i] = [li, ri] represents a s[li...ri].
+
+For each query, determine the maximum possible number of active sections in s after making the optimal trade on the substring s[li...ri].
+
+Return an array answer, where answer[i] is the result for queries[i].
+
+Note
+
+    For each query, treat s[li...ri] as if it is augmented with a '1' at both ends, forming t = '1' + s[li...ri] + '1'. The augmented '1's do not contribute to the final count.
+    The queries are independent of each other.
+'''
+
+# Learned segment tree solution
+# Brute force: time complexity O(nq) where q=len(queries), too slow
+# Max segment tree with time complexity O(n+q log n)
+# - building time O(n)
+# - for each query, binary search time O(log n) and query time O(log n)
+# space complexity O(n)
+
+class SegmentTree:
+    def __init__(self, arr):
+        self.n = len(arr)
+        self.arr = arr
+        self.seg = [0] * (self.n << 2)
+
+        if self.n:
+            self.build(1, 0, self.n - 1)
+
+    def build(self, p: int, l: int, r: int) -> None:
+        if l == r:
+            self.seg[p] = self.arr[l]
+            return
+
+        mid = (l + r) >> 1
+
+        self.build(p << 1, l, mid)
+        self.build(p << 1 | 1, mid + 1, r)
+
+        self.seg[p] = max(self.seg[p << 1], self.seg[p << 1 | 1])
+
+    def query(self, L: int, R: int) -> int:
+        if L > R:
+            return 0
+
+        def _query(p: int, l: int, r: int) -> int:
+            if L <= l and r <= R:
+                return self.seg[p]
+
+            mid = (l + r) >> 1
+            res = 0
+
+            if L <= mid:
+                res = max(res, _query(p << 1, l, mid))
+
+            if R > mid:
+                res = max(res, _query(p << 1 | 1, mid + 1, r))
+
+            return res
+
+        return _query(1, 0, self.n - 1)
+
+class Solution:
+    def maxActiveSectionsAfterTrade(self, s: str, queries: List[List[int]]) -> List[int]:
+        n = len(s)
+        cnt1 = s.count("1")
+
+        zeroBlocks = []
+        blockLeft = []
+        blockRight = []
+
+        i = 0
+        while i < n:
+            st = i
+
+            while i < n and s[i] == s[st]:
+                i += 1
+
+            if s[st] == "0":
+                zeroBlocks.append(i - st)
+                blockLeft.append(st)
+                blockRight.append(i - 1)
+
+        m = len(zeroBlocks)
+        if (
+            m < 2
+        ):  # continuous 0 blocks less than 2 segments, return the answer directly
+            return [cnt1] * len(queries)
+
+
+        tmpSum = [zeroBlocks[i] + zeroBlocks[i + 1] for i in range(m - 1)]
+        seg = SegmentTree(tmpSum)
+        ans = []
+
+        for l, r in queries:
+            i = bisect_left(blockRight, l)
+            j = bisect_right(blockLeft, r) - 1
+
+            # at most 1 continuous block of 0s within the substring
+            if i > m - 1 or j < 0 or i >= j:
+                ans.append(cnt1)
+                continue
+
+            firstLen = (
+                blockRight[i] - max(blockLeft[i], l) + 1
+            )  # actual length of the first consecutive block of 0s in the substring
+
+            lastLen = (
+                min(blockRight[j], r) - blockLeft[j] + 1
+            )  # actual length of the last consecutive block of 0s in the substring
+
+            # exactly 2 consecutive 0 blocks within the substring
+            if i + 1 == j:
+                bestGain = firstLen + lastLen
+                ans.append(cnt1 + bestGain)
+                continue
+
+            val1 = firstLen + zeroBlocks[i + 1]
+            val2 = zeroBlocks[j - 1] + lastLen
+            val3 = seg.query(i + 1, j - 2)
+            bestGain = max(val1, val2, val3)
+            ans.append(cnt1 + bestGain)
+        return ans
+
+'''
+# previous attempt with binary search, but slow with slicing, still resulting in O(nq) time
+
+        n = len(s)
+        cnt1 = s.count('1')
+        zeros = []
+        zerosLen = []
+        answer = []
+
+        # locate zero blocks by start/end indices
+        i = 0
+        while i < n:
+            start = i
+            while i < n and s[i] == s[start]:
+                i += 1
+            if s[start] == '0':
+                zeros.append([start, i-1])
+                zerosLen.append(i - start)
+        
+        # each query
+        for l,r in queries:
+            # search for interval containing or just below l
+            idxL, isExactL = self.search(zeros, l)
+            # search for interval containing or just below r
+            idxR, isExactR = self.search(zeros, r)
+
+            # edge cases
+            if idxL is None: # l before first zero block
+                idxL = 0 
+                isExactL = False
+            if idxR is None: # r before first zero block
+                answer.append(cnt1)
+                continue
+            if idxL == idxR and not isExactL and not isExactR: # [l,r] does not intersect zero block
+                answer.append(cnt1)
+                continue
+
+
+            if idxL == idxR and isExactL and isExactR:
+                zerosLenQ = [r - l + 1]
+            else:
+                actual_idxL = idxL + 1
+                zerosLenQ = []
+                # left
+                if isExactL:
+                    zerosLenQ.append(zeros[idxL][1] - l + 1)
+                # middle
+                end_idx = idxR if isExactR else idxR + 1
+                if actual_idxL < end_idx:
+                    zerosLenQ.extend(zerosLen[actual_idxL:end_idx])
+                # right
+                if isExactR:
+                    zerosLenQ.append(r - zeros[idxR][0] + 1)
+
+            # check gain
+            m = len(zerosLenQ)
+            if m < 2:
+                answer.append(cnt1)
+                continue
+            gainQ = 0
+            for j in range(m-1):
+                gainQ = max(gainQ, zerosLenQ[j]+zerosLenQ[j+1])
+            answer.append(cnt1 + gainQ)
+        return answer
+
+    def search(self, interval: List[List[int]], num: int) -> List[Optional[int], bool]:
+        low = 0
+        high = len(interval)-1
+        idx = -1
+
+        while low <= high:
+            mid = (low+high)//2
+            l,r = interval[mid]
+            if l <= num <= r:
+                return mid, True # num inside interval[mid]
+            elif num < l:
+                high = mid - 1
+            else: # num > r
+                low = mid + 1
+                idx = mid
+        
+        if idx != -1:
+            return idx, False # num just above interval[mid]
+        
+        return None, False # num below interval[0]
+'''
+
+
+
+''' 
+Brute force solution using Leet 3499
+Time O(nq)
+
+    def maxActiveSectionsAfterTrade(self, s: str, queries: List[List[int]]) -> List[int]:
+        answer = []
+        for l, r in queries:
+            ans = self.maxActiveSectionsAfterTradeI(s[l:r+1])
+            ans += s[:l].count('1') + s[r+1:].count('1')
+            answer.append(ans)
+        return answer
+
+    def maxActiveSectionsAfterTradeI(self, s: str) -> int:
+        n = len(s)
+        cnt1 = s.count('1')
+        
+        gain = 0
+        prev = -n
+
+        i = 0
+        while i < n:
+            start = i
+            while i < n and s[i] == s[start]:
+                i += 1
+            if s[start] == '0':
+                curr = i - start
+                gain = max(gain, prev + curr)
+                prev = curr
+        
+        return cnt1 + gain
+'''
