@@ -1,0 +1,75 @@
+'''Leet 912. Sort an Array
+
+Given an array of integers nums, sort the array in ascending order and return it.
+
+You must solve the problem without using any built-in functions in O(nlog(n)) time complexity and with the smallest space complexity possible.
+'''
+
+# Approach 1: Standard heap sort
+# Heapify (add a parent to heap children) 
+# Build max heap by heapifying from index n//2 to 1 (non-leaves)
+
+# Approach 2: Standard merge sort
+# Recursively merge two arrays by appending and popping the smaller to new
+
+class Solution:
+    def sortArray(self, nums: List[int]) -> List[int]:
+        def heapify(arr: List[int], heapSize: int, i: int):
+            """Keep max-heap for subtree rooted at i"""
+            left = 2 * i + 1
+            right = 2 * i + 2
+            largest = i
+
+            if left < heapSize and arr[left] > arr[largest]:
+                largest = left
+            if right < heapSize and arr[right] > arr[largest]:
+                largest = right
+            
+            if largest != i:
+                arr[i], arr[largest] = arr[largest], arr[i]
+                heapify(arr, heapSize, largest)
+
+        def buildMaxHeap(arr: List[int]):
+            """Build max-heap from array"""
+            heapSize = len(arr)
+            for i in range(heapSize//2-1, -1, -1):
+                heapify(arr, heapSize, i)
+
+        def heapSort(arr: List[int]):
+            """Sort by building max-heap, swapping away root (max) and heapifying remaining subtree recursively"""
+            buildMaxHeap(arr)
+            heapSize = len(arr)
+            for i in range(heapSize-1, 0, -1):
+                arr[0], arr[i] = arr[i], arr[0]
+                heapSize -= 1
+                heapify(arr, heapSize, 0)
+
+        def merge(arr1: List[int], arr2: List[int]) -> List[int]:
+            """Merge two arrays"""
+            ans = []
+            while arr1 and arr2:
+                if arr1[0] < arr2[0]:
+                    ans.append(arr1.pop(0))
+                else:
+                    ans.append(arr2.pop(0))
+
+            if arr1:
+                ans.extend(arr1)
+            if arr2:
+                ans.extend(arr2)
+
+            return ans
+
+        def mergeSort(arr: List[int]) -> List[int]:
+            """Sort by merging two sorted arrays"""
+            n = len(arr)
+            if n <= 1:
+                return arr
+            arr1 = arr[:n//2]
+            arr2 = arr[n//2:]
+            arr1 = mergeSort(arr1)
+            arr2 = mergeSort(arr2)
+            return merge(arr1, arr2)
+
+        nums = mergeSort(nums)
+        return nums
