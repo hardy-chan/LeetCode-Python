@@ -1,0 +1,75 @@
+'''Leet 3. Longest Substring Without Repeating Characters
+
+Given a string s, find the length of the longest substring without duplicate characters.
+'''
+
+# Approach 1: Greedy moving window with variable length
+# Time complexity O(n), beats 96.28%
+# Space complexity O(sigma)
+
+# Approach 2: Optimized with hash map (start pointer jumps)
+
+class Solution:
+    def lengthOfLongestSubstring(self, s: str) -> int:
+        # Approach 2
+        # return length in base case
+        n = len(s)
+        if n <= 1:
+            return n
+        # sliding window
+        start = 0
+        charMap = {s[0]: 0}
+        length = 1
+        for end in range(1,n):
+            currChar = s[end]
+            if currChar in charMap and charMap[currChar] >= start: 
+                start = charMap[currChar] + 1
+            charMap[currChar] = end
+            length = max(length, end - start + 1)
+        return length
+
+
+'''
+        # Approach 1
+        # return length in base case
+        n = len(s)
+        if n <= 1:
+            return n
+        # sliding window
+        start, end = 0, 0
+        charSet = set(s[0])
+        length = 1
+        while end < n-1:
+            end += 1
+            if s[end] not in charSet: # new char: add
+                charSet.add(s[end])
+                length = max(length, len(charSet))
+                continue
+            while s[start] != s[end]: # old char: move start
+                charSet.remove(s[start])
+                start += 1
+            start += 1
+        return length
+'''
+
+
+'''
+        # Old approach: sliding window of fixed length (only works for s containing a...z)
+
+        # empty string
+        if not s:
+            return 0
+        # count char
+        counts = [0] * 26
+        for char in s:
+            counts[ord(char)-97] += 1
+        # total char in s
+        total = sum(1 for i in counts if i != 0)
+        # brute force sliding window of fixed length
+        for length in range(total,0,-1):
+            for start in range(len(s)-length):
+                subStr = s[start:start + length]
+                if len(subStr) == len(set(subStr)):
+                    return length
+        return 1
+'''
