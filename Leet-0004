@@ -1,0 +1,98 @@
+'''Leet 4. Median of Two Sorted Arrays
+
+Given two sorted arrays nums1 and nums2 of size m and n respectively, return the median of the two sorted arrays.
+
+The overall run time complexity should be O(log (m+n)).
+'''
+
+# Approach 1: Merge sort (without merged array)
+# Time complexity O(m+n)
+# Space complexity O(m+n)
+
+# Approach 2: Binary search
+# Recursively discard (almost) half of elements in shorter array each time
+# Discard most elements in longer array when the shorter is short enough
+# Time complexity O(log(min(m,n)))
+
+class Solution:
+    def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float:
+        m, n = len(nums1), len(nums2)
+        # ensure nums1 is shorter
+        if m > n:
+            nums1, nums2 = nums2, nums1
+            m, n = n, m
+        
+        l1, l2 = 0, 0
+        r1, r2 = m-1, n-1
+        print(r1,r2)
+        # halve m by binary search
+        while m>4: # at least left or right from mid1 is nonempty
+            mid1, mid2 = (l1+r1)//2, (l2+r2)//2
+            if nums1[mid1] == nums2[mid2]:
+                # discard all except the middle 1 or 2 elements
+                diff1 = mid1 - l1 - 1
+                l1, r1 = mid1, r1-diff1
+                diff2 = mid2 - l2 - 1
+                l2, r2 = mid2, r2-diff2
+                m, n = r1- l1 + 1, r2 - l2 + 1
+                # print("m=", m, "n=", n, "arr1:", mid1,l1,r1,"arr2:", mid2, l2,r2,"diff=",diff1, diff2)
+                # print("nums1:", nums1[l1:r1+1], "nums2:", nums2[l2:r2+1])
+                break
+            elif nums1[mid1] < nums2[mid2]:
+                # discard nums1 before mid1 and same number in nums2 from after, leaving 1 space
+                diff = mid1 - l1 - 1
+                l1, r2 = l1 + diff, r2 - diff
+            else: # nums1[mid1] > nums2[mid2]
+                # discard nums1 after mid1 and same number in nums2 from before, leaving 1 space
+                diff = r1 - mid1 - 1
+                r1, l2 = r1 - diff, l2 + diff
+            m, n = r1- l1 + 1, r2 - l2 + 1
+            # print("m=", m, "n=", n, "arr1:", mid1,l1,r1,"arr2:", mid2, l2,r2,"diff=",diff)
+            # print("nums1:", nums1[l1:r1+1], "nums2:", nums2[l2:r2+1])
+
+        # Since m <= 2, discard in num2 except 5-6 middle elements
+        diff2 = max((n-8)//2, 0)
+        rest = sorted(nums1[l1:r1+1]+nums2[l2+diff2:r2+1-diff2])
+        l = len(rest)
+        # print("rest:", rest)
+        # print("l:", l)
+        if l%2 == 1:
+            return rest[l//2]
+        else:
+            return ( rest[l//2-1] + rest[l//2] )/2
+
+        return 0 # should not happen
+            
+
+'''
+        # Approach 1: Merge sort
+
+        m, n = len(nums1), len(nums2)
+        p1, p2 = 0, 0
+
+        def get_min() -> int:
+            nonlocal p1, p2
+            if p1 < m and p2 < n:
+                if nums1[p1] < nums2[p2]:
+                    ans = nums1[p1]
+                    p1 += 1
+                else:
+                    ans = nums2[p2]
+                    p2 += 1
+            elif p2 == n:
+                ans = nums1[p1]
+                p1 += 1
+            else:
+                ans = nums2[p2]
+                p2 += 1
+            return ans
+
+        if (m+n)%2 == 0:
+            for _ in range((m+n)//2-1):
+                _ = get_min()
+            return (get_min() + get_min())/2
+        else:
+            for _ in range((m+n)//2):
+                _ = get_min()
+            return get_min()
+'''
