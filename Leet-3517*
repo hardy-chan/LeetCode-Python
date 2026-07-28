@@ -1,0 +1,40 @@
+'''Leet 3517. Smallest Palindromic Rearrangement I
+
+You are given a palindromic string s.
+
+Return the lexicographically smallest palindromic permutation of s
+'''
+
+# Approach 1: Counting sort, prepend-append from z to a
+# Time complexity O(n), beats 99.08%
+# Space complexity O(n) due to storing ans
+
+# Approach 2: Optimized space by storing char counts only
+# Time complexity O(n), beats 94.47%
+# Space complexity O(1), beats 96.31%
+
+class Solution:
+    def smallestPalindrome(self, s: str) -> str:
+        # Approach 2
+        half = len(s)//2
+        counts = [0]*26
+        for i in range(half):
+            counts[ord(s[i])-97] += 1 # ord('a')=97
+        return ''.join([
+            ''.join(chr(i+97)*counts[i] for i in range(26) if counts[i]>0),
+            s[half] if len(s)%2==1 else '',
+            ''.join(chr(i+97)*counts[i] for i in range(25,-1,-1) if counts[i]>0)
+        ])
+
+'''
+        # Approach 1
+        n = len(s)
+        # get middle char if len(s) is odd to start with
+        ans = s[n//2] if n%2==1 else ''
+        # counting sort first half
+        for char in reversed(string.ascii_lowercase): # 'z..a'
+            charCount = s.count(char,0,n//2)
+            charStr = char*charCount
+            ans = charStr + ans + charStr
+        return ans
+'''
