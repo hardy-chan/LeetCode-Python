@@ -1,0 +1,49 @@
+'''Leet 3310. Remove Methods From Project
+
+You are maintaining a project that has n methods numbered from 0 to n - 1.
+
+You are given two integers n and k, and a 2D integer array invocations, where invocations[i] = [ai, bi] indicates that method ai invokes method bi.
+
+There is a known bug in method k. Method k, along with any method invoked by it, either directly or indirectly, are considered suspicious and we aim to remove them.
+
+A group of methods can only be removed if no method outside the group invokes any methods within it.
+
+Return an array containing all the remaining methods after removing all the suspicious methods. You may return the answer in any order. If it is not possible to remove all the suspicious methods, none should be removed.
+'''
+
+# Learned solution using BFS and keeping track of in-degree
+# Time complexity: O(n+m), m = length of invocations
+# Space complexity: O(n+m)
+
+class Solution:
+    def remainingMethods(self, n: int, k: int, invocations: List[List[int]]) -> List[int]:
+        edges = [[] for _ in range(n)]
+        in_degree = [0] * n
+
+        for u, v in invocations:
+            edges[u].append(v)
+            in_degree[v] += 1
+
+        queue = collections.deque([k])
+        suspicious = bytearray(n)
+        suspicious[k] = 1
+
+        while queue:
+            u = queue.popleft()
+            for v in edges[u]:
+                in_degree[v] -= 1
+
+                if suspicious[v] == 0:
+                    queue.append(v)
+                    suspicious[v] = 1
+        
+        can_remove_all = True
+        for i in range(n):
+            if suspicious[i] == 1 and in_degree[i] > 0:
+                can_remove_all = False
+                break
+        
+        if not can_remove_all:
+            return list(range(n))
+
+        return [i for i in range(n) if suspicious[i] == 0]
