@@ -1,0 +1,17 @@
+'''Leet 3718. Smallest Missing Multiple of K
+
+Given an integer array nums and an integer k, return the smallest positive multiple of k that is missing from nums.
+
+A multiple of k is any positive integer divisible by k.
+'''
+
+# Direct checking by (hash) set
+
+class Solution:
+    def missingMultiple(self, nums: List[int], k: int) -> int:
+        numsSet = set(nums)
+        mult = 0
+        while True:
+            mult += k
+            if mult not in numsSet:
+                return mult
